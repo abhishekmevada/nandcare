@@ -1,0 +1,75 @@
+:root {
+  --bg: #f7f5f0;
+  --color: black;
+  --primary-color: hsl(150, 23%, 10%);
+  --cta-color: #e94949;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 16px;
+}
+
+html {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--color);
+  overflow-x: hidden;
+}
+
+h1,
+h2 {
+  font-family: "Playfair Display", serif;
+}
+
+.icone {
+  height: 16px;
+  width: 16px;
+}
+
+.gost-but {
+  position: relative;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: transparent;
+  border-radius: 20px;
+  transition: 1s;
+  cursor: pointer;
+  border: none;
+}
+.gost-but:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+.gost-but:active {
+  transform: translateY(-10px);
+}
+.cta-but {
+  position: relative;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background-color: var(--cta-color);
+  color: white;
+  border-radius: 20px;
+  transition: 1s;
+  cursor: pointer;
+  border: none;
+}
+.cta-but:hover {
+  background-color: hsl(0, 78%, 50%);
+}
+.cta-but:active {
+  transform: translateY(-10px);
+}

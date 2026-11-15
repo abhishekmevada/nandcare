@@ -1,0 +1,281 @@
+.headerContainer {
+  position: fixed;
+  top: 0;
+  padding: 1rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background-color: var(--bg);
+  border-bottom: 1px solid transparent;
+  z-index: 999;
+}
+.headerContainerActive {
+  position: fixed;
+  top: 0;
+  padding: 1rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.6);
+  transition: all 0.3s ease;
+  z-index: 999;
+}
+.headerLogoBox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.headerBox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ---- Navigation ---- */
+.headerNav > ul {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.navItem {
+  position: relative;
+}
+
+.navLink {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 10px;
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 450;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.navLink::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 2px;
+  height: 1.5px;
+  background: var(--cta-color);
+  transform: scaleX(0);
+  transition: transform 0.25s ease;
+}
+.navLink:hover,
+.navLink[aria-expanded="true"] {
+  color: var(--cta-color);
+}
+.navLink:hover::after,
+.navLink[aria-expanded="true"]::after {
+  transform: scaleX(1);
+}
+.navLink:focus-visible,
+.navPanel a:focus-visible {
+  outline: 2px solid #161a17;
+  outline-offset: 2px;
+}
+
+.navChevron {
+  transition: transform 0.2s;
+}
+.navLink[aria-expanded="true"] .navChevron {
+  transform: rotate(180deg);
+}
+
+/* ---- Dropdown ---- */
+.navDrop {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  padding-top: 10px; /* invisible bridge so hover isn't lost */
+  z-index: 1000;
+  animation: dropIn 0.18s ease both;
+}
+/* last two menus open towards the left so they stay on screen */
+.navItem:nth-last-child(-n + 2) .navDrop {
+  left: auto;
+  right: 0;
+}
+
+.navPanel {
+  min-width: 260px;
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+  background: #faf9f6;
+  border: 1px solid #dcd8cd;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(22, 26, 23, 0.12);
+}
+.navPanel a {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 15px;
+  color: #161a17;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.navPanel a:hover {
+  background: #f0eee7;
+  color: var(--cta-color);
+}
+
+@keyframes dropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .navDrop {
+    animation: none;
+  }
+  .navLink::after,
+  .navChevron {
+    transition: none;
+  }
+}
+/* ---- Menu button (mobile only) ---- */
+.menuToggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid #dcd8cd;
+  border-radius: 50%;
+  color: inherit;
+  cursor: pointer;
+}
+.menuToggle:focus-visible {
+  outline: 2px solid #161a17;
+  outline-offset: 2px;
+}
+
+/* header gets a solid background while the mobile menu is open */
+.headerContainer.menuOpen,
+.headerContainerActive.menuOpen {
+  background: #faf9f6;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-bottom-color: #dcd8cd;
+}
+
+/* chevron turns upside down in both menus */
+[aria-expanded="true"] > .navChevron {
+  transform: rotate(180deg);
+}
+
+/* ---- Mobile menu panel ---- */
+.mobileMenu {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 998;
+  background: #faf9f6;
+  overflow-y: auto;
+  padding: 8px 1rem calc(24px + env(safe-area-inset-bottom, 0px));
+  animation: dropIn 0.2s ease both;
+}
+.mList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mList > li {
+  border-bottom: 1px solid #dcd8cd;
+}
+.mLink {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 0 4px;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 500;
+  color: #161a17;
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+}
+.mSub {
+  margin: 0 0 12px 4px;
+  padding: 0 0 0 16px;
+  list-style: none;
+  border-left: 1px solid #dcd8cd;
+  animation: dropIn 0.18s ease both;
+}
+.mSub a {
+  display: block;
+  padding: 12px 0;
+  font-size: 16px;
+  color: #5d665f;
+  text-decoration: none;
+}
+.mSub a:hover {
+  color: var(--cta-color);
+}
+.mActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 24px;
+}
+.mActions button {
+  min-height: 48px;
+  width: 100%;
+}
+
+/* ---- Switch between desktop and mobile ---- */
+@media (max-width: 1245px) {
+  .headerNav {
+    display: none;
+  }
+  .headerBox .gost-but {
+    display: none;
+  } /* Login moves into the mobile panel */
+  .menuToggle {
+    display: inline-flex;
+  }
+}
+@media (min-width: 1081px) {
+  .mobileMenu {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobileMenu,
+  .mSub {
+    animation: none;
+  }
+}
