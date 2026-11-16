@@ -4,7 +4,7 @@
   padding-top: 90px;
   height: 100vh;
   width: 100%;
-  background-image: url("./heroBg.png");
+  background-image: url("/heroBg.png");
   background-size: cover;
   background-position: center;
 }
@@ -310,7 +310,7 @@
   padding: 1rem;
   width: 100%;
   height: 70vh;
-  background-image: url("./images/ourimpact.jpg");
+  background-image: url("/images/ourimpact.jpg");
   background-position: center;
   background-size: cover;
   border-radius: 30px;
@@ -373,7 +373,7 @@
   align-items: start;
   justify-content: end;
   gap: 10px;
-  background-image: url("./images/vision.jpg");
+  background-image: url("/images/vision.jpg");
   background-position: center;
   background-size: cover;
   border-radius: 30px;
@@ -408,7 +408,7 @@
   align-items: start;
   justify-content: end;
   gap: 10px;
-  background-image: url("./images/mission.jpg");
+  background-image: url("/images/mission.jpg");
   background-position: center;
   background-size: cover;
   border-radius: 30px;
@@ -566,7 +566,7 @@
   justify-content: end;
   gap: 10px;
   border-radius: 30px;
-  background-image: url("./images/getinvolveda.jpg");
+  background-image: url("/images/getinvolveda.jpg");
   background-size: cover;
   background-position: center;
 }
@@ -577,7 +577,7 @@
   justify-content: end;
   gap: 10px;
   border-radius: 30px;
-  background-image: url("./images/getinvolvedb.jpg");
+  background-image: url("/images/getinvolvedb.jpg");
   background-size: cover;
   background-position: center;
 }
@@ -588,7 +588,7 @@
   justify-content: end;
   gap: 10px;
   border-radius: 30px;
-  background-image: url("./images/getinvolvedc.jpg");
+  background-image: url("/images/getinvolvedc.jpg");
   background-size: cover;
   background-position: center;
 }
@@ -606,7 +606,7 @@
   align-items: end;
   justify-content: end;
   border-radius: 30px;
-  background-image: url("./images/getinvolveda.jpg");
+  background-image: url("/images/getinvolveda.jpg");
   background-size: cover;
   background-position: center;
   overflow: hidden;
@@ -732,7 +732,7 @@
   gap: 10px;
   height: 100%;
   width: 100%;
-  background-image: url("./images/finalcta.jpg");
+  background-image: url("/images/finalcta.jpg");
   background-size: cover;
   background-position: center;
   border-radius: 30px;

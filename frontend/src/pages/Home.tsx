@@ -129,7 +129,7 @@ export default function Home() {
           className="IntroductionSecContainerb"
         >
           <img
-            src="./images/intobg.jpg"
+            src="/images/intobg.jpg"
             alt="Nand Care Foundation"
             className="introSecBgImg"
           />
@@ -161,7 +161,7 @@ export default function Home() {
               className="whatweworkCardImgBoxa"
             >
               <img
-                src="./images/what_we_do_first.jpg"
+                src="/images/what_we_do_first.jpg"
                 alt=""
                 className="whatweworkCardImg"
               />
@@ -215,7 +215,7 @@ export default function Home() {
               className="whatweworkCardImgBox"
             >
               <img
-                src="./images/what_we_do_second.jpg"
+                src="/images/what_we_do_second.jpg"
                 alt=""
                 className="whatweworkCardImg"
               />
@@ -269,7 +269,7 @@ export default function Home() {
               className="whatweworkCardImgBox"
             >
               <img
-                src="./images/what_we_do_third.jpg"
+                src="/images/what_we_do_third.jpg"
                 alt=""
                 className="whatweworkCardImg"
               />
@@ -324,7 +324,7 @@ export default function Home() {
               style={{ width: "100%" }}
             >
               <img
-                src="./images/what_we_do_fourth.jpg"
+                src="/images/what_we_do_fourth.jpg"
                 alt=""
                 className="whatweworkCardImg"
               />
@@ -374,7 +374,7 @@ export default function Home() {
           className="AboutContainera"
         >
           <img
-            src="./images/about_img.jpg"
+            src="/images/about_img.jpg"
             alt="About NCF"
             className="aboutImg"
           />
@@ -598,7 +598,7 @@ export default function Home() {
           >
             <div className="whowesupportImgBox">
               <img
-                src="./images/whowesupport.jpg"
+                src="/images/whowesupport.jpg"
                 alt="Building Brighter Futures"
                 className="whowesupportImg"
               />
@@ -621,7 +621,7 @@ export default function Home() {
           >
             <div className="whowesupportImgBox">
               <img
-                src="./images/whowesupportb.jpg"
+                src="/images/whowesupportb.jpg"
                 alt="Building Brighter Futures"
                 className="whowesupportImg"
               />
@@ -647,7 +647,7 @@ export default function Home() {
           >
             <div className="whowesupportImgBox">
               <img
-                src="./images/whowesupportc.jpg"
+                src="/images/whowesupportc.jpg"
                 alt="Building Brighter Futures"
                 className="whowesupportImg"
               />
@@ -670,7 +670,7 @@ export default function Home() {
           >
             <div className="whowesupportImgBox">
               <img
-                src="./images/whowesupportd.jpg"
+                src="/images/whowesupportd.jpg"
                 alt="Building Brighter Futures"
                 className="whowesupportImg"
               />
@@ -905,7 +905,7 @@ export default function Home() {
                 whileInView={{ scale: 1, opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, type: "spring", stiffness: 120 }}
-                src="./images/ncf_logo_nobg.webp"
+                src="/images/ncf_logo_nobg.webp"
                 alt="Nand Care Foundation"
                 className="footerLogo"
               />
