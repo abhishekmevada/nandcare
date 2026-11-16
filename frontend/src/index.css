@@ -2,14 +2,14 @@
   --bg: #f7f5f0;
   --color: black;
   --primary-color: hsl(150, 23%, 10%);
-  --cta-color: #e94949;
+  --cta-color: #d32f2f;
 }
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Plus Jakarta Sans", sans-serif;
+  font-family: "Google Sans", sans-serif;
   font-size: 16px;
 }
 
@@ -26,7 +26,10 @@ body {
 
 h1,
 h2 {
-  font-family: "Playfair Display", serif;
+  font-family: "Lexend Deca", sans-serif;
+}
+h1 {
+  font-size: 2rem;
 }
 
 .icone {
@@ -44,11 +47,12 @@ h2 {
   border-radius: 20px;
   transition: 1s;
   cursor: pointer;
-  border: none;
+  border: 2px solid white;
 }
 .gost-but:hover {
   background-color: var(--primary-color);
   color: white;
+  border-color: var(--primary-color);
 }
 .gost-but:active {
   transform: translateY(-10px);
@@ -65,11 +69,70 @@ h2 {
   border-radius: 20px;
   transition: 1s;
   cursor: pointer;
-  border: none;
+  border: 2px solid transparent;
 }
 .cta-but:hover {
-  background-color: hsl(0, 78%, 50%);
+  background-color: #b71c1c;
 }
 .cta-but:active {
   transform: translateY(-10px);
+}
+.arror-cta-but {
+  position: relative;
+  padding: 16px 10px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--cta-color);
+  color: white;
+  transition: 1s;
+  cursor: pointer;
+}
+.arror-cta-but:hover {
+  background-color: #b71c1c;
+}
+.cta-span {
+  position: relative;
+  padding: 5px;
+  background-color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border-radius: 20px;
+}
+.arror-cta-but:hover .cta-span {
+  transform: translateX(4px);
+}
+.arror-gost-cta-but {
+  position: relative;
+  padding: 16px 10px;
+  border-radius: 30px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--primary-color);
+  color: white;
+  transition: 1s;
+  cursor: pointer;
+  width: max-content;
+}
+.arror-gost-cta-but:hover {
+  background-color: hsl(150, 23%, 15%);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
+.gost-cta-span {
+  position: relative;
+  padding: 5px;
+  background-color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color);
+  border-radius: 20px;
+  transition: 1s;
+}
+.arror-gost-cta-but:hover .gost-cta-span {
+  transform: translateX(4px);
 }

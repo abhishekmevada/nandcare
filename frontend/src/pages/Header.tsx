@@ -1,289 +1,294 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, Menu, X } from "lucide-react";
 import "../style/Header.css";
+import { motion } from "framer-motion";
 
-type MenuItem = {
-  label: string;
-  href?: string;
-  links?: { label: string; href: string }[];
-};
+/** Must match the breakpoint in Header.css (max-width: 1080px = mobile) */
+const DESKTOP_QUERY = "(min-width: 1081px)";
 
-const menu: MenuItem[] = [
+type NavLink = { label: string; href: string };
+type NavItem = { label: string; href?: string; links?: NavLink[] };
+
+const MENU: NavItem[] = [
   { label: "Home", href: "/" },
+  { label: "About us", links: [{ label: "Where We Work", href: "/" }] },
   {
-    label: "About us",
+    label: "Our work",
     links: [
-      { label: "The entity", href: "/about/entity" },
-      { label: "Vision & mission", href: "/about/vision-mission" },
-      { label: "Reach & scale", href: "/about/reach-scale" },
-    ],
-  },
-  {
-    label: "Area we work",
-    links: [
-      { label: "Hunger & food security", href: "/areas/hunger-food-security" },
+      { label: "Hunger & Nutrition", href: "/areas/hunger-food-security" },
       { label: "Education", href: "/areas/education" },
       { label: "Livelihood", href: "/areas/livelihood" },
       { label: "Elderly care", href: "/areas/elderly-care" },
     ],
   },
-  {
-    label: "Campaigns",
-    links: [
-      {
-        label: "A meal of dignity for elders",
-        href: "/campaigns/meal-of-dignity",
-      },
-      { label: "All campaigns", href: "/campaigns" },
-      { label: "Past campaigns", href: "/campaigns/past" },
-    ],
-  },
-  {
-    label: "Partnership",
-    links: [
-      { label: "CSR & corporate partnerships", href: "/partnership/csr" },
-    ],
-  },
-  {
-    label: "Get involved",
-    links: [
-      { label: "Volunteer", href: "/volunteer" },
-      { label: "Donor wall", href: "/donor-wall" },
-    ],
-  },
-  {
-    label: "Resources",
-    links: [
-      { label: "Blog", href: "/blog" },
-      { label: "Impact stories", href: "/impact-stories" },
-      { label: "Donor wall", href: "/donor-wall" },
-      { label: "FAQs", href: "/faqs" },
-    ],
-  },
+  { label: "Our Impact", links: [{ label: "Gallery", href: "/" }] },
+  { label: "Contact Us", href: "/" },
 ];
 
-export default function Header() {
-  const [changeBg, setChangeBg] = useState(false);
-  const [open, setOpen] = useState<number | null>(null); // desktop dropdown
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [mobileSub, setMobileSub] = useState<number | null>(null);
-  const [headerH, setHeaderH] = useState(76);
+function useScrolled() {
+  const [scrolled, setScrolled] = useState(false);
 
-  const headerRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const onScroll = () =>
+      setScrolled(window.scrollY >= window.innerHeight * 0.7);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return scrolled;
+}
+
+/* ---------------------------------- Desktop --------------------------------- */
+
+function DesktopNav() {
+  const [open, setOpen] = useState<number | null>(null);
   const navRef = useRef<HTMLElement>(null);
   const triggers = useRef<(HTMLButtonElement | null)[]>([]);
 
-  const closeMobile = () => {
-    setMobileOpen(false);
-    setMobileSub(null);
-  };
-
-  useEffect(() => {
-    const handleScroll = () =>
-      setChangeBg(window.scrollY >= window.innerHeight);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // desktop: close dropdown when clicking outside
+  // close dropdown on outside click
   useEffect(() => {
     const onPointerDown = (e: PointerEvent) => {
-      if (navRef.current && !navRef.current.contains(e.target as Node))
-        setOpen(null);
+      if (!navRef.current?.contains(e.target as Node)) setOpen(null);
     };
     document.addEventListener("pointerdown", onPointerDown);
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, []);
 
-  // mobile: measure header, lock page scroll, close on Escape
-  useEffect(() => {
-    if (!mobileOpen) return;
-    setHeaderH(headerRef.current?.offsetHeight ?? 76);
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeMobile();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [mobileOpen]);
-
-  // close the mobile menu if the window becomes wide
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1081px)");
-    const onChange = () => {
-      if (mq.matches) closeMobile();
-    };
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
-
-  const onNavKeyDown = (e: React.KeyboardEvent) => {
+  const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape" && open !== null) {
       triggers.current[open]?.focus();
       setOpen(null);
     }
   };
-  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   return (
-    <>
-      <header
-        ref={headerRef}
-        className={`${changeBg ? "headerContainerActive" : "headerContainer"}${
-          mobileOpen ? " menuOpen" : ""
-        }`}
-      >
-        <div className="headerLogoBox">
-          <img
-            src="./images/ncf_logo_nobg.webp"
-            alt="Nand Care Foundation"
-            className="headerLogo"
-          />
-          <p>
-            Nand Care
-            <br />
-            Foundation
-          </p>
-        </div>
+    <motion.nav
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 1.2, ease: "easeOut" }}
+      className="nav"
+      aria-label="Main"
+      ref={navRef}
+      onKeyDown={onKeyDown}
+    >
+      <ul className="nav__list pill">
+        {MENU.map((item, i) =>
+          item.links ? (
+            <li
+              key={item.label}
+              className="nav__item"
+              onPointerEnter={(e) => e.pointerType === "mouse" && setOpen(i)}
+              onPointerLeave={(e) => e.pointerType === "mouse" && setOpen(null)}
+            >
+              <button
+                type="button"
+                className="nav__link"
+                ref={(el) => {
+                  triggers.current[i] = el;
+                }}
+                aria-expanded={open === i}
+                aria-haspopup="true"
+                aria-controls={`menu-${i}`}
+                onClick={(e) => {
+                  // mouse uses hover; touch & keyboard toggle on click
+                  if ((e.nativeEvent as PointerEvent).pointerType === "mouse")
+                    return;
+                  setOpen(open === i ? null : i);
+                }}
+              >
+                {item.label}
+                <ChevronDown
+                  size={16}
+                  strokeWidth={2.5}
+                  className="chevron"
+                  aria-hidden="true"
+                />
+              </button>
 
-        {/* desktop menu */}
-        <nav
-          className="headerNav"
-          aria-label="Main"
-          ref={navRef}
-          onKeyDown={onNavKeyDown}
-        >
-          <ul>
-            {menu.map((item, i) =>
-              item.links ? (
-                <li
-                  key={item.label}
-                  className="navItem"
-                  onPointerEnter={(e) =>
-                    e.pointerType === "mouse" && setOpen(i)
-                  }
-                  onPointerLeave={(e) =>
-                    e.pointerType === "mouse" && setOpen(null)
-                  }
-                >
-                  <button
-                    type="button"
-                    className="navLink"
-                    ref={buttonRef}
-                    aria-expanded={open === i}
-                    aria-haspopup="true"
-                    aria-controls={`menu-${i}`}
-                    onClick={(e) => {
-                      if (
-                        (e.nativeEvent as PointerEvent).pointerType === "mouse"
-                      )
-                        return;
-                      setOpen(open === i ? null : i);
-                    }}
-                  >
-                    {item.label}
-                    <ChevronDown
-                      size={16}
-                      strokeWidth={2.5}
-                      className="navChevron"
-                      aria-hidden="true"
-                    />
-                  </button>
-                  {open === i && (
-                    <div className="navDrop" id={`menu-${i}`}>
-                      <ul className="navPanel">
-                        {item.links.map((l) => (
-                          <li key={l.label}>
-                            <a href={l.href} onClick={() => setOpen(null)}>
-                              {l.label}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </li>
-              ) : (
-                <li key={item.label} className="navItem">
-                  <a className="navLink" href={item.href}>
-                    {item.label}
-                  </a>
-                </li>
-              ),
-            )}
-          </ul>
-        </nav>
-
-        <div className="headerBox">
-          <button className="gost-but">login</button>
-          <button className="cta-but">Donate</button>
-          <button
-            type="button"
-            className="menuToggle"
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-menu"
-            onClick={() => (mobileOpen ? closeMobile() : setMobileOpen(true))}
-          >
-            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-      </header>
-
-      {/* mobile menu */}
-      {mobileOpen && (
-        <div className="mobileMenu" id="mobile-menu" style={{ top: headerH }}>
-          <nav aria-label="Mobile">
-            <ul className="mList">
-              {menu.map((item, i) =>
-                item.links ? (
-                  <li key={item.label}>
-                    <button
-                      type="button"
-                      className="mLink"
-                      aria-expanded={mobileSub === i}
-                      aria-controls={`mobile-sub-${i}`}
-                      onClick={() => setMobileSub(mobileSub === i ? null : i)}
-                    >
-                      {item.label}
-                      <ChevronDown
-                        size={18}
-                        strokeWidth={2.5}
-                        className="navChevron"
-                        aria-hidden="true"
-                      />
-                    </button>
-                    {mobileSub === i && (
-                      <ul className="mSub" id={`mobile-sub-${i}`}>
-                        {item.links.map((l) => (
-                          <li key={l.label}>
-                            <a href={l.href} onClick={closeMobile}>
-                              {l.label}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </li>
-                ) : (
-                  <li key={item.label}>
-                    <a className="mLink" href={item.href} onClick={closeMobile}>
-                      {item.label}
-                    </a>
-                  </li>
-                ),
+              {open === i && (
+                <div className="nav__drop" id={`menu-${i}`}>
+                  <ul className="nav__panel">
+                    {item.links.map((l) => (
+                      <li key={l.label}>
+                        <a href={l.href} onClick={() => setOpen(null)}>
+                          {l.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
-            </ul>
-          </nav>
-          <div className="mActions">
-            <button className="gost-but">Login</button>
-            <button className="cta-but">Donate</button>
-          </div>
-        </div>
-      )}
-    </>
+            </li>
+          ) : (
+            <li key={item.label} className="nav__item">
+              <a className="nav__link" href={item.href}>
+                {item.label}
+              </a>
+            </li>
+          ),
+        )}
+      </ul>
+    </motion.nav>
+  );
+}
+
+/* ----------------------------------- Mobile ---------------------------------- */
+
+function MobileMenu({ onClose }: { onClose: () => void }) {
+  const [openSub, setOpenSub] = useState<number | null>(null);
+
+  return (
+    <div className="mobile-menu" id="mobile-menu">
+      <nav aria-label="Mobile">
+        <ul className="mobile-menu__list">
+          {MENU.map((item, i) =>
+            item.links ? (
+              <li key={item.label}>
+                <button
+                  type="button"
+                  className="mobile-menu__link"
+                  aria-expanded={openSub === i}
+                  aria-controls={`mobile-sub-${i}`}
+                  onClick={() => setOpenSub(openSub === i ? null : i)}
+                >
+                  {item.label}
+                  <ChevronDown
+                    size={18}
+                    strokeWidth={2.5}
+                    className="chevron"
+                    aria-hidden="true"
+                  />
+                </button>
+
+                {openSub === i && (
+                  <ul className="mobile-menu__sub" id={`mobile-sub-${i}`}>
+                    {item.links.map((l) => (
+                      <li key={l.label}>
+                        <a href={l.href} onClick={onClose}>
+                          {l.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ) : (
+              <li key={item.label}>
+                <a
+                  className="mobile-menu__link"
+                  href={item.href}
+                  onClick={onClose}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ),
+          )}
+        </ul>
+      </nav>
+
+      <div className="mobile-menu__actions">
+        <button type="button" className="btn btn--ghost">
+          Login
+        </button>
+        <button type="button" className="btn btn--cta">
+          Donate
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------------- Header ---------------------------------- */
+
+export default function Header() {
+  const scrolled = useScrolled();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const closeMobile = useCallback(() => setMobileOpen(false), []);
+
+  // mobile menu open: lock page scroll + close on Escape
+  useEffect(() => {
+    if (!mobileOpen) return;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeMobile();
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [mobileOpen, closeMobile]);
+
+  // close mobile menu when the viewport becomes desktop-sized
+  useEffect(() => {
+    const mq = window.matchMedia(DESKTOP_QUERY);
+    const onChange = () => mq.matches && closeMobile();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [closeMobile]);
+
+  const headerClass = [
+    "header",
+    scrolled && "is-scrolled",
+    mobileOpen && "is-open",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <header className={headerClass}>
+      <motion.a
+        href="/"
+        initial={{ x: -200, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 1, ease: "easeOut" }}
+        className="brand pill"
+      >
+        <img src="/images/ncf_logo_nobg.webp" alt="" className="brand__logo" />
+        <span className="brand__name">
+          Nand Care
+          <br />
+          Foundation
+        </span>
+      </motion.a>
+
+      <DesktopNav />
+
+      <div className="actions">
+        <motion.button
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 1.4, ease: "easeOut" }}
+          type="button"
+          className="btn btn--ghost actions__login"
+          style={{ padding: "17px 20px" }}
+        >
+          Login
+        </motion.button>
+        <motion.button
+          initial={{ x: 200, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 1.6, ease: "easeOut" }}
+          type="button"
+          className="cta-but"
+          style={{ padding: "17px 20px" }}
+        >
+          Donate
+        </motion.button>
+        <button
+          type="button"
+          className="menu-toggle"
+          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-menu"
+          onClick={() => setMobileOpen((v) => !v)}
+        >
+          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {mobileOpen && <MobileMenu onClose={closeMobile} />}
+    </header>
   );
 }

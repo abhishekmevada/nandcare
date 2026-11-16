@@ -1,1380 +1,1300 @@
 import Header from "./Header";
 import "../style/Home.css";
-import { useEffect, useRef, useState } from "react";
+import { ChevronRight, Eye, Goal } from "lucide-react";
+import { ImFacebook2 } from "react-icons/im";
+import { GrInstagram } from "react-icons/gr";
+import { BsLinkedin } from "react-icons/bs";
+import { motion } from "framer-motion";
 
-// ─── Framer Motion ────────────────────────────────────────────────────────────
-import {
-  motion,
-  AnimatePresence,
-  useInView,
-  useAnimation,
-  useMotionValue,
-  useSpring,
-} from "motion/react";
-import type { Variants } from "motion/react";
-
-// ─── Shared animation variants ───────────────────────────────────────────────
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 32 },
-  visible: (delay = 0) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1], delay },
-  }),
-};
-
-const fadeIn: Variants = {
-  hidden: { opacity: 0 },
-  visible: (delay = 0) => ({
-    opacity: 1,
-    transition: { duration: 0.55, ease: "easeOut", delay },
-  }),
-};
-
-const slideLeft: Variants = {
-  hidden: { opacity: 0, x: -48 },
-  visible: (delay = 0) => ({
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1], delay },
-  }),
-};
-
-const slideRight: Variants = {
-  hidden: { opacity: 0, x: 48 },
-  visible: (delay = 0) => ({
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1], delay },
-  }),
-};
-
-const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.88 },
-  visible: (delay = 0) => ({
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1], delay },
-  }),
-};
-
-const staggerContainer: Variants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.12, delayChildren: 0.1 },
-  },
-};
-
-const staggerItem: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
-  },
-};
-
-// ─── Reusable scroll-triggered wrapper ───────────────────────────────────────
-function InView({
-  children,
-  variants = fadeUp,
-  delay = 0,
-  className,
-}: {
-  children: React.ReactNode;
-  variants?: Variants;
-  delay?: number;
-  className?: string;
-}) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px 0px" } as Parameters<typeof useInView>[1]);
-  const controls = useAnimation();
-
-  useEffect(() => {
-    if (inView) controls.start("visible");
-  }, [inView, controls]);
-
-  return (
-    <motion.div
-      ref={ref}
-      className={className}
-      initial="hidden"
-      animate={controls}
-      variants={variants}
-      custom={delay}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-// ─── Animated counting number ─────────────────────────────────────────────────
-function AnimatedCounter({
-  value,
-  prefix = "",
-}: {
-  value: string;
-  prefix?: string;
-}) {
-  // Parse out the raw integer and any suffix like '+' or '%'
-  const suffix = value.replace(/[\d,]/g, ""); // e.g. '+' or '%'
-  const raw = parseInt(value.replace(/[^\d]/g, ""), 10); // numeric part
-
-  const motionVal = useMotionValue(0);
-  const spring = useSpring(motionVal, { stiffness: 60, damping: 20, mass: 0.8 });
-  const [display, setDisplay] = useState("0");
-
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-60px 0px" } as Parameters<typeof useInView>[1]);
-
-  useEffect(() => {
-    if (inView) motionVal.set(raw);
-  }, [inView, motionVal, raw]);
-
-  useEffect(() => {
-    const unsubscribe = spring.on("change", (latest) => {
-      setDisplay(
-        Math.round(latest).toLocaleString("en-IN")
-      );
-    });
-    return unsubscribe;
-  }, [spring]);
-
-  return (
-    <span
-      ref={ref}
-      style={{
-        fontSize: "inherit",
-        fontWeight: "inherit",
-        color: "inherit",
-        fontFamily: "inherit",
-        lineHeight: "inherit",
-        letterSpacing: "inherit",
-      }}
-    >
-      {prefix}{display}{suffix}
-    </span>
-  );
-}
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
-type Voice = {
-  name: string;
-  role: string;
-  quote: string;
-  photo: string;
-  photoAlt: string;
-};
-
-const voices: Voice[] = [
-  {
-    name: "Mayur Deshmukh",
-    role: "IFS · Worked with NCF during Covid",
-    quote:
-      "The kind of work which NCF does serves the most needy people and helps the ones at the bottom of the pyramid. Their job has the potential to really bring change at the ground level.",
-    photo: "./images/mayur-deshmukh.webp",
-    photoAlt: "Mayur Deshmukh and a colleague smiling together",
-  },
-  {
-    name: "Deepak Kumar",
-    role: "AGM (Engg - Civil), Airports Authority of India, Kolkata Airport · Visited our classrooms",
-    quote:
-      "Visiting their ground-level classrooms allowed me to see firsthand the incredible impact they have on underprivileged children in mining and tribal communities. I am incredibly proud to support an organization that brings real education, nutrition, and hope.",
-    photo: "./images/deepak-kumar.webp",
-    photoAlt: "Deepak Kumar",
-  },
-];
-
-const photos = [
-  {
-    src: "./images/download-28ac8326.webp",
-    alt: "An elderly woman smiling with folded hands among community members",
-  },
-  {
-    src: "./images/download-90f18b6b.webp",
-    alt: "A girl holding a steel plate in a queue for food",
-  },
-  {
-    src: "./images/download-491d82b5.webp",
-    alt: "A child holding a blue basin as food is served",
-  },
-  {
-    src: "./images/download-316413a0.webp",
-    alt: "A smiling girl holding a steel plate",
-  },
-  {
-    src: "./images/download-1931452f.webp",
-    alt: "A smiling girl holding a steel plate",
-  },
-  {
-    src: "./images/download-c77ea9b1.webp",
-    alt: "A smiling girl holding a steel plate",
-  },
-  {
-    src: "./images/download-c6556126.webp",
-    alt: "A smiling girl holding a steel plate",
-  },
-  {
-    src: "./images/download-ce126438.webp",
-    alt: "A smiling girl holding a steel plate",
-  },
-  {
-    src: "./images/download-de79fbc1.webp",
-    alt: "A smiling girl holding a steel plate",
-  },
-];
-
-const corporate = {
-  title: "CSR and corporate partnerships",
-  lede: "A corporate partnership with NCF can help companies channel their CSR efforts towards community-led programmes that address real needs on the ground.",
-  facts: [
-    {
-      label: "Focus areas",
-      value: "Education, hunger and nutrition, elderly care and livelihoods",
-    },
-    {
-      label: "Ways to support",
-      value:
-        "Programme funding, long-term projects, employee engagement, in-kind support",
-    },
-  ],
-  cta: { label: "Partner with us", href: "/partner" },
-};
-
-const volunteer = {
-  title: "Volunteer with NCF",
-  lede: "Experience community work at the grassroots level and understand the realities faced by underserved communities. Through field activities, education, elderly care, livelihood initiatives, content, research or outreach, your time and skills can create meaningful change.",
-  intro: "As an NCF volunteer, you will",
-  benefits: [
-    "Gain hands-on grassroots experience with communities and field initiatives",
-    "Understand how community-based programmes are planned and implemented",
-    "Develop skills in communication, teamwork, leadership and community engagement",
-    "Work alongside a team committed to sustainable impact",
-    "Receive a Certificate of Service recognising your contribution to NCF",
-  ],
-  cta: { label: "Join us as a volunteer", href: "/volunteer" },
-};
-
-const faqs = [
-  {
-    q: "What is Nand Care Foundation?",
-    a: "Nand Care Foundation is a grassroots organisation working with tribal communities and coal-mining families on education, hunger relief, healthcare and livelihoods, and responding to the needs of children, families and elderly people.",
-  },
-  {
-    q: "How are donations used?",
-    a: "Donations help us run and strengthen our grassroots programmes. Depending on the programme and community needs, contributions may support nutritious food and cooked meals, elderly care and healthcare support, education, livelihood training, essential supplies and other programme-related activities.", // TODO
-  },
-  {
-    q: "Will I receive a receipt for my donation?",
-    a: "Yes. A digital donation receipt will be issued for successful donations and sent to the email address provided during the donation process.", // TODO
-  },
-  {
-    q: "Is my donation eligible for an 80G tax deduction?",
-    a: "Yes. Nand Care Foundation is registered under Section 80G of the Income Tax Act, and eligible donations made to NCF qualify for tax benefits as per the applicable provisions and prevailing rules.Please retain your donation receipt for your tax records.",
-  },
-  {
-    q: "What if my payment is deducted but my donation is not confirmed?",
-    a: "If the amount has been deducted from your account but you have not received a confirmation or receipt, please contact our team with your transaction details, payment date and registered email or phone number. We will verify the transaction and assist you.", // TODO
-  },
-];
-
-const columns = [
-  {
-    title: "Causes",
-    links: [{ label: "Elderly care", href: "/causes/elderly-care" }],
-  },
-  {
-    title: "About us",
-    links: [
-      { label: "The entity", href: "/about" },
-      { label: "Vision & mission", href: "/vision-mission" },
-      { label: "Reach & scale", href: "/reach" },
-    ],
-  },
-  {
-    title: "Discover",
-    links: [
-      { label: "Home", href: "/" },
-      { label: "Impact stories", href: "/impact-stories" },
-      { label: "Areas we work", href: "/areas" },
-      { label: "Blog", href: "/blog" },
-      { label: "Donor dashboard", href: "/dashboard" },
-      { label: "Contact us", href: "/contact" },
-    ],
-  },
-];
-
-const legal = [
-  { label: "Privacy policy", href: "/privacy" },
-  { label: "Terms of use", href: "/terms" },
-  { label: "Refund & cancellation", href: "/refund" },
-  { label: "Donation policy", href: "/donation-policy" },
-];
-
-const socials = [
-  {
-    label: "Facebook",
-    href: "#", // TODO: add your Facebook URL
-    icon: (
-      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-    ),
-  },
-  {
-    label: "Instagram",
-    href: "#", // TODO: add your Instagram URL
-    icon: (
-      <>
-        <rect x="2" y="2" width="20" height="20" rx="5" />
-        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-        <path d="M17.5 6.5h.01" />
-      </>
-    ),
-  },
-  {
-    label: "LinkedIn",
-    href: "#", // TODO: add your LinkedIn URL
-    icon: (
-      <>
-        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-        <rect x="2" y="9" width="4" height="12" />
-        <circle cx="4" cy="4" r="2" />
-      </>
-    ),
-  },
-];
-
-const stats = [
-  { number: "50,000+", label: "Families reached" },
-  { number: "15+", label: "Coaching centres" },
-  { number: "1,200+", label: "Children impacted" },
-  { number: "5,000+", label: "Elderly people reached" },
-];
-
-const trustItems = [
-  { title: "Section 80G", sub: "50% tax exemption" },
-  { title: "12A registered", sub: "Income Tax Department" },
-  { title: "NITI Aayog Darpan", sub: "Govt. of India portal" },
-  { title: "MCA compliant", sub: "CIN U85320DL2019NPL358219" },
-];
-
-// ─── Component ────────────────────────────────────────────────────────────────
 export default function Home() {
-  const [amount, setAmount] = useState(2500);
-  const [customAmount, setCustomAmount] = useState("");
-
-  const presetAmounts = [1000, 2500, 5000];
-
-  const [active, setActive] = useState(0);
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const voice = voices[active];
-
-  const stripRef = useRef<HTMLUListElement>(null);
-  const [canPrev, setCanPrev] = useState(false);
-  const [canNext, setCanNext] = useState(true);
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-
-  const update = () => {
-    const el = stripRef.current;
-    if (!el) return;
-    setCanPrev(el.scrollLeft > 2);
-    setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
-  };
-
-  useEffect(() => {
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
-
-  const step = (dir: 1 | -1) => {
-    const el = stripRef.current;
-    const card = el?.firstElementChild as HTMLElement | null;
-    if (!el || !card) return;
-    const reduce = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    el.scrollBy({
-      left: dir * (card.getBoundingClientRect().width + 16),
-      behavior: reduce ? "auto" : "smooth",
-    });
-  };
-
-  const move = (next: number) => {
-    setActive(next);
-    tabRefs.current[next]?.focus();
-  };
-
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "ArrowRight") {
-      e.preventDefault();
-      move((active + 1) % voices.length);
-    }
-    if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      move((active + voices.length - 1) % voices.length);
-    }
-  };
-
-  const handlePresetAmount = (value: any) => {
-    setAmount(value);
-    setCustomAmount("");
-  };
-
-  const handleCustomAmount = (e: any) => {
-    const value = e.target.value.replace(/\D/g, "");
-    setCustomAmount(value);
-    setAmount(value ? Number(value) : 0);
-  };
-
-  const formattedAmount = amount ? amount.toLocaleString("en-IN") : "";
-
-  const handleDonate = () => {
-    if (!amount || amount <= 0) {
-      alert("Please enter a valid donation amount.");
-      return;
-    }
-    console.log("Donation Amount:", amount);
-    // Integrate payment gateway here (Razorpay, etc.)
-  };
-
-  const buttonRef = useRef<HTMLButtonElement>(null);
-
   return (
     <>
       <Header />
-
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="HeroSection">
+      <motion.section
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.7, ease: "easeOut" }}
+        className="HeroSection"
+      >
         <div className="heroSectionContainer">
-          <motion.img
-            src="./images/ncf_logo_nobg.webp"
-            alt="Nand Care Foundation"
-            className="heroSectionLogo"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          />
-          <motion.h1
-            className="heroTitle"
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+          <motion.p
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 1.9, ease: "easeOut" }}
+            className="heroSectionTag"
           >
-            Where others don't reach, we do.
+            EMPOWERING COMMUNITIES. ENABLING CHANGE
+          </motion.p>
+          <motion.h1
+            initial={{ x: -100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 2, ease: "easeOut" }}
+          >
+            Building Better Lives. Creating Opportunities. Restoring Dignity
           </motion.h1>
           <motion.p
-            className="heroSubtitle"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+            initial={{ x: 100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 2.1, ease: "easeOut" }}
+            className="heroSectionSubtitle"
           >
-            Food, education and livelihoods for families in Jharkhand, and
-            dignity and care for children and elders across India.
+            Nand Care Foundation works alongside tribal communities, coal-mining
+            families and underserved populations to improve access to education,
+            nutritious food, healthcare and sustainable livelihoods.
           </motion.p>
-          <motion.button
-            className="cta-but"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.45 }}
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            Donate Now
-          </motion.button>
-          <motion.div
-            className="photo"
-            initial={{ opacity: 0, y: 40, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: 0.55 }}
-          >
-            <img src="./images/skybg.jpg" alt="Nand Care Foundation" />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── Stats Section ─────────────────────────────────────────────────── */}
-      <section className="SecondSection">
-        <div className="secondSectionContainera">
-          <InView variants={fadeUp}>
-            <h2 className="secondTitle">Where compassion meets the last mile.</h2>
-          </InView>
-          <InView variants={fadeUp} delay={0.1}>
-            <p className="secondSubtitle">
-              Fighting hunger, enabling education and livelihoods in Jharkhand,
-              and bringing care to elders across India.
-            </p>
-          </InView>
-        </div>
-
-        <motion.div
-          className="SecondSectionNumberContainer"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-60px 0px" }}
-        >
-          {stats.map((s) => (
-            <motion.div
-              className="secondSectionNumberBox"
-              key={s.label}
-              variants={staggerItem}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+          <div className="herosectionBox">
+            <motion.p
+              initial={{ x: -200, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 2.2, ease: "easeOut" }}
+              className="herocta-but"
             >
-              <p className="secondSectinoNumber">
-                <AnimatedCounter value={s.number} />
-              </p>
-              <p className="secondSectinoLabel">{s.label}</p>
-            </motion.div>
-          ))}
+              Donate Now
+            </motion.p>
+            <motion.p
+              initial={{ x: 200, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 2.2, ease: "easeOut" }}
+              className="herogost-but"
+            >
+              Explore Our Work{" "}
+              <span className="cta-span">
+                <ChevronRight className="icone" />
+              </span>
+            </motion.p>
+          </div>
+        </div>
+      </motion.section>
+      <section className="IntroductionSection">
+        <div className="IntroductionSecContainera">
+          <motion.p
+            initial={{ scale: 0.5, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 2.2, ease: "easeOut" }}
+            className="introSectionTag"
+          >
+            ABOUT NAND CARE FOUNDATION
+          </motion.p>
+          <motion.h2
+            initial={{ scale: 0.5, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 2.3, ease: "easeOut" }}
+            className="h2Title inroh2Titleb"
+          >
+            Working Together to Build Stronger Communities
+          </motion.h2>
+          <motion.p
+            initial={{ scale: 0.5, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 2.4, ease: "easeOut" }}
+            className="introPara"
+          >
+            Nand Care Foundation (NCF) is a grassroots non-profit organisation
+            committed to supporting underserved and vulnerable communities,
+            particularly tribal communities, coal-mining families and rural
+            populations.
+            <br />
+            <br />
+            We believe that every individual deserves access to basic
+            necessities, meaningful opportunities and the support needed to live
+            a life of security and dignity.
+            <br />
+            <br />
+            Working closely with communities, we focus on understanding their
+            everyday challenges and developing practical solutions through
+            education, hunger and nutrition, elderly care and livelihood
+            support.
+          </motion.p>
+          <motion.p
+            initial={{ x: -200, opacity: 0 }}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 2.5, ease: "easeOut" }}
+            className="arror-gost-cta-but"
+          >
+            Learn More About Us{" "}
+            <span className="gost-cta-span">
+              <ChevronRight className="icone" />
+            </span>
+          </motion.p>
+        </div>
+        <motion.div
+          initial={{ x: 200, opacity: 0 }}
+          whileInView={{ x: 0, opacity: 1 }}
+          viewport={{ once: true, amount: "some" }}
+          transition={{ duration: 2, ease: "easeOut" }}
+          className="IntroductionSecContainerb"
+        >
+          <img
+            src="./images/intobg.jpg"
+            alt="Nand Care Foundation"
+            className="introSecBgImg"
+          />
         </motion.div>
       </section>
-
-      {/* ── Campaigns Section ─────────────────────────────────────────────── */}
-      <section className="ThirdSection">
-        <InView variants={fadeIn}>
-          <p className="livenowLabel">Live Now</p>
-        </InView>
-        <div className="thirdSectionHeader">
-          <InView variants={slideLeft} delay={0.05}>
-            <h2 className="secondTitle">Support a campaign</h2>
-          </InView>
-          <InView variants={slideRight} delay={0.05}>
-            <p className="thirdSectionNavp">All Campaigns</p>
-          </InView>
-        </div>
-
-        <div className="thirdSectionMain">
-          <InView variants={slideLeft} className="thirdImgBox">
-            <img
-              src="./images/hunger-hero-6f0505eb.webp"
-              alt="A Meal of Dignity for Elders"
-              className="thirdImg"
-            />
-          </InView>
-
+      <section className="whatweWorkSection">
+        <p className="introSectionTag">WHAT WE DO</p>
+        <h2 className="h2Title">
+          Creating Change Through Four Key Focus Areas
+        </h2>
+        <p>
+          We work alongside underserved communities to address everyday
+          challenges and create opportunities for a healthier, more secure and
+          dignified life.
+        </p>
+        <div className="WhatWeWorkContainer">
           <motion.div
-            className="thirdSectionMainBody"
-            variants={{
-              hidden: {},
-              visible: { transition: { staggerChildren: 0.13, delayChildren: 0.15 } },
-            }}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-80px 0px" }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            className="whatweworkCarda"
           >
-            {/* Category tag */}
-            <motion.p
-              className="thirdSectionMainBodyp"
-              variants={{
-                hidden: { opacity: 0, y: 18 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-              }}
-            >
-              Elderly care
-            </motion.p>
-
-            {/* Campaign title */}
-            <motion.p
-              className="thirdSectionMainh1"
-              variants={{
-                hidden: { opacity: 0, y: 22 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
-              }}
-            >
-              A meal of dignity for elders
-            </motion.p>
-
-            {/* Description */}
-            <motion.p
-              className="thirdSectionMainBodyp"
-              variants={{
-                hidden: { opacity: 0, y: 18 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-              }}
-            >
-              Nutritious daily meals and essential food support for elderly
-              people living in extreme hardship.
-            </motion.p>
-
-            {/* Fundraising stats + donate button */}
             <motion.div
-              className="thirdSectionMainBodyDonateTrackContainer"
-              variants={{
-                hidden: { opacity: 0, y: 18 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
-              }}
+              initial={{ scale: 0.5, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              viewport={{ once: true, amount: "some" }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              className="whatweworkCardImgBoxa"
             >
-              <p className="thirdRaised">
-                <span className="thirdamountSpan">
-                  <AnimatedCounter value="11,75,489" prefix="₹" />
-                </span>{" "}raised of{" "}
-                <AnimatedCounter value="25,00,000" prefix="₹" />
-              </p>
-              <div className="thirdSectionProgessBar">
-                <div className="progressBarThird"></div>
-              </div>
-              <div className="thirdxbox">
-                <p className="thirdxboxp">
-                  <AnimatedCounter value="47%" /> of goal
-                </p>
-                <p className="thirdxboxp">
-                  <AnimatedCounter value="1,346" /> donors
-                </p>
-              </div>
-              <motion.button
-                className="cta-but thirdDonateBtn"
-                variants={{
-                  hidden: { opacity: 0, y: 14 },
-                  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
-                }}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                Donate to this Campaign
-              </motion.button>
+              <img
+                src="./images/what_we_do_first.jpg"
+                alt=""
+                className="whatweworkCardImg"
+              />
             </motion.div>
-          </motion.div>
-        </div>
-
-        <InView variants={scaleIn} delay={0.1}>
-          <div className="thirdMoreContainer">
-            <div className="thirdMoreImgBox">
-              <img
-                src="./images/img-2.jpg"
-                alt="More Campaigns"
-                className="thirdMoreImg"
-              />
-            </div>
-            <div className="thirdMoreContainerBody">
-              <div className="thirdMoreContainerBox">
-                <p className="thirdMoretitle">More ways to give</p>
-                <p className="thirdSectionMainBodyp">
-                  Support education, healthcare, hunger relief and elder care
-                  across India.
-                </p>
-              </div>
-              <p className="thirdSectionNavp">View All Campaigns</p>
-            </div>
-          </div>
-        </InView>
-      </section>
-
-      {/* ── Intro / About ─────────────────────────────────────────────────── */}
-      <section className="intro" aria-labelledby="intro-title">
-        <div className="introGrid">
-          <InView variants={slideLeft}>
-            <div>
-              <h2 id="intro-title" className="secondTitle">
-                A grassroots organisation working beside the families others
-                don't reach.
-              </h2>
-              <p className="introLead">
-                Nand Care Foundation works with tribal communities and
-                coal-mining families on the issues that shape their everyday
-                lives and opportunities.
-              </p>
-              <p className="introBody">
-                Our work spans education, hunger relief, healthcare and
-                livelihoods, and responds to the needs of children, families and
-                elders. We work closely with communities to understand what they
-                need and to create opportunities for long-term progress.
-              </p>
-              <blockquote>
-                With the right support, people can overcome challenges, rebuild
-                their lives and become self-reliant.
-              </blockquote>
-              <div className="introActions">
-                <motion.p
-                  className="cta-but"
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  About our foundation
-                </motion.p>
-                <p className="thirdSectionNavp">Our programs</p>
-              </div>
-            </div>
-          </InView>
-          <InView variants={slideRight} delay={0.15}>
-            <figure>
-              <img
-                src="./images/nand-care-foundation-community.webp"
-                alt="A volunteer smiling with a child in his arms"
-              />
-            </figure>
-          </InView>
-        </div>
-      </section>
-
-      {/* ── Donation Section ──────────────────────────────────────────────── */}
-      <section className="donation-wrap">
-        {/* Trust badges – staggered fade-up */}
-        <motion.ul
-          className="trust"
-          aria-label="Registrations and compliance"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-60px 0px" }}
-        >
-          {trustItems.map((t) => (
-            <motion.li key={t.title} variants={staggerItem}>
-              <b>{t.title}</b>
-              <span>{t.sub}</span>
-            </motion.li>
-          ))}
-        </motion.ul>
-
-        <section className="donate" aria-labelledby="give-title">
-          {/* Left – slides in from left */}
-          <InView variants={slideLeft} className="left">
-            <h2 id="give-title">Your support can change lives.</h2>
-            <p>
-              Every contribution helps Nand Care Foundation support children,
-              elderly people and vulnerable families in Dhanbad through
-              education, nutrition and essential food support.
-            </p>
-            <figure>
-              <img
-                src="/images/ncf-donation-bg.jpg"
-                alt="Smiling children from the community Nand Care Foundation supports"
-              />
-            </figure>
-          </InView>
-
-          {/* Donation card – slides in from right */}
-          <InView variants={slideRight} delay={0.1} className="card">
-            <h3>Make a donation</h3>
-            <p>
-              Your support provides nutritious meals, learning opportunities and
-              essential supplies to the communities that need them most.
-            </p>
-
-            <div className="amts">
-              {presetAmounts.map((value) => (
-                <motion.button
-                  key={value}
-                  type="button"
-                  aria-pressed={!customAmount && amount === value}
-                  onClick={() => handlePresetAmount(value)}
-                  whileHover={{ scale: 1.06 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  ₹{value.toLocaleString("en-IN")}
-                </motion.button>
-              ))}
-            </div>
-
-            <label className="field">
-              <span aria-hidden="true">₹</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="Enter custom amount"
-                aria-label="Custom amount in rupees"
-                value={customAmount}
-                onChange={handleCustomAmount}
-              />
-            </label>
-
-            <motion.button
-              className="go"
-              type="button"
-              onClick={handleDonate}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              Proceed to donate
-              {amount > 0 ? ` ₹${formattedAmount}` : ""}
-            </motion.button>
-          </InView>
-        </section>
-      </section>
-
-      {/* ── Voices / Testimonials ─────────────────────────────────────────── */}
-      <section className="voices" aria-labelledby="voices-title">
-        <InView variants={fadeUp}>
-          <h2 id="voices-title">People who saw the work first-hand</h2>
-        </InView>
-
-        <div className="voicesStage">
-          {/* Photo cross-fades when switching testimonial */}
-          <AnimatePresence mode="wait">
-            <motion.figure
-              key={`photo-${active}`}
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 30 }}
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <img src={voice.photo} alt={voice.photoAlt} />
-            </motion.figure>
-          </AnimatePresence>
-
-          <div>
-            {/* Quote panel fades + slides on tab change */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={active}
-                role="tabpanel"
-                id="voices-panel"
-                aria-labelledby={`voice-tab-${active}`}
-                className="voicesPanel"
-                tabIndex={0}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -16 }}
-                transition={{ duration: 0.4, ease: "easeInOut" }}
-              >
-                <blockquote>{voice.quote}</blockquote>
-                <div className="voicesWho">
-                  <b>{voice.name}</b>
-                  <span>{voice.role}</span>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-
-            <div
-              className="voicesTabs"
-              role="tablist"
-              aria-label="Choose a story"
-              onKeyDown={onKeyDown}
-            >
-              {voices.map((v, i) => (
-                <button
-                  key={v.name}
-                  ref={buttonRef}
-                  role="tab"
-                  id={`voice-tab-${i}`}
-                  aria-selected={active === i}
-                  aria-controls="voices-panel"
-                  tabIndex={active === i ? 0 : -1}
-                  onClick={() => setActive(i)}
-                >
-                  {v.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <InView variants={fadeUp} delay={0.1}>
-          <div className="voicesFoot">
-            <a className="voicesBtn" href="/donor-wall">
-              See our donor wall
-            </a>
-          </div>
-        </InView>
-      </section>
-
-      {/* ── Work / Gallery ────────────────────────────────────────────────── */}
-      <section className="work" aria-labelledby="work-title">
-        <InView variants={fadeUp} className="workIntro">
-          <h2 id="work-title">
-            Education, hunger and food security, elderly care and livelihoods.
-          </h2>
-          <p>
-            At Nand Care Foundation, we work with some of the most marginalised
-            communities across India to create opportunities, ensure basic needs
-            and build a secure future for tomorrow.
-          </p>
-        </InView>
-
-        {/* Gallery images – each card animates into view individually */}
-        <ul
-          className="workStrip"
-          ref={stripRef}
-          onScroll={update}
-          tabIndex={0}
-          aria-label="Photos from our work"
-        >
-          {photos.map((p, i) => (
-            <motion.li
-              key={p.src}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, margin: "-40px 0px" }}
-              transition={{
-                duration: 0.5,
-                ease: [0.22, 1, 0.36, 1],
-                delay: (i % 4) * 0.08,
-              }}
-              whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
-            >
-              <img src={p.src} alt={p.alt} loading="lazy" />
-            </motion.li>
-          ))}
-        </ul>
-
-        <InView variants={fadeIn} delay={0.05}>
-          <div className="workCtrl">
-            <button
-              type="button"
-              aria-label="Previous photos"
-              disabled={!canPrev}
-              onClick={() => step(-1)}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M15 5l-7 7 7 7" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              aria-label="Next photos"
-              disabled={!canNext}
-              onClick={() => step(1)}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        </InView>
-      </section>
-
-      {/* ── Get Involved ──────────────────────────────────────────────────── */}
-      <section className="involved" aria-labelledby="involved-title">
-        <InView variants={fadeUp} className="involvedIntro">
-          <h2 id="involved-title">Get involved: partner or volunteer</h2>
-          <p>
-            Whether for verifiable CSR implementation or grassroots
-            volunteering, join us in empowering tribal and mining communities.
-          </p>
-        </InView>
-
-        <div className="involvedCols">
-          <InView variants={slideLeft} delay={0.05}>
-            <article className="involvedCol">
-              <h3>{corporate.title}</h3>
-              <p className="involvedLede">{corporate.lede}</p>
-              <ul className="involvedRows">
-                {corporate.facts.map((f) => (
-                  <li key={f.label} className="involvedKv">
-                    <span>{f.label}</span>
-                    <span>{f.value}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="involvedCta">
-                <motion.a
-                  className="involvedBtn"
-                  style={{ backgroundColor: "var(--cta-color)" }}
-                  href={corporate.cta.href}
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  {corporate.cta.label}
-                </motion.a>
-              </div>
-            </article>
-          </InView>
-
-          <InView variants={slideRight} delay={0.1}>
-            <article className="involvedCol">
-              <h3>{volunteer.title}</h3>
-              <p className="involvedLede">{volunteer.lede}</p>
-              <p className="involvedSub">{volunteer.intro}</p>
-              <ul className="involvedRows">
-                {volunteer.benefits.map((b) => (
-                  <li key={b}>{b}</li>
-                ))}
-              </ul>
-              <div className="involvedCta">
-                <motion.a
-                  className="involvedBtn"
-                  href={volunteer.cta.href}
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  {volunteer.cta.label}
-                </motion.a>
-              </div>
-            </article>
-          </InView>
-        </div>
-      </section>
-
-      {/* ── FAQ ───────────────────────────────────────────────────────────── */}
-      <section className="faq" aria-labelledby="faq-title">
-        <div className="faqGrid">
-          <InView variants={slideLeft} className="faqSide">
-            <h2 id="faq-title">Everything you need to know about giving</h2>
-            <p>
-              Clear answers to common questions about donating and 80G tax
-              benefits.
-            </p>
-          </InView>
-
-          <div>
-            <motion.ul
-              className="faqList"
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-60px 0px" }}
-            >
-              {faqs.map((item, i) => {
-                const open = openIndex === i;
-                return (
-                  <motion.li
-                    key={item.q}
-                    className="faqItem"
-                    variants={staggerItem}
-                  >
-                    <h3>
-                      <button
-                        type="button"
-                        className="faqQ"
-                        id={`faq-q-${i}`}
-                        aria-expanded={open}
-                        aria-controls={`faq-a-${i}`}
-                        onClick={() => setOpenIndex(open ? null : i)}
-                      >
-                        <span>{item.q}</span>
-                        <span className="faqIcon" aria-hidden="true" />
-                      </button>
-                    </h3>
-
-                    {/* Animated expand/collapse */}
-                    <AnimatePresence initial={false}>
-                      {open && (
-                        <motion.div
-                          id={`faq-a-${i}`}
-                          role="region"
-                          aria-labelledby={`faq-q-${i}`}
-                          className="faqA open"
-                          key="answer"
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{
-                            duration: 0.35,
-                            ease: [0.22, 1, 0.36, 1],
-                          }}
-                          style={{ overflow: "hidden" }}
-                        >
-                          <div>
-                            <p>{item.a}</p>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                    {/* Keep DOM node when closed for aria-controls */}
-                    {!open && (
-                      <div
-                        id={`faq-a-${i}`}
-                        role="region"
-                        aria-labelledby={`faq-q-${i}`}
-                        className="faqA"
-                        hidden
-                      />
-                    )}
-                  </motion.li>
-                );
-              })}
-            </motion.ul>
-            <InView variants={fadeUp} delay={0.1}>
-              <div className="faqMore">
-                <a className="faqBtn" href="/faqs">
-                  View all FAQs
-                </a>
-              </div>
-            </InView>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Footer ────────────────────────────────────────────────────────── */}
-      <footer className="footer">
-        <div className="footerInner">
-
-          {/* ── Top row: brand + social ───────────────────────────────────── */}
-          <div className="footerTop">
-
-            {/* Brand logo — slides in from left */}
-            <div>
-              <motion.a
-                className="footerBrand"
-                href="/"
-                initial={{ opacity: 0, x: -32 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-60px 0px" }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <img
-                  src="./images/ncf_logo_nobg.webp"
-                  alt=""
-                  width={34}
-                  height={30}
-                />
-                Nand Care Foundation
-              </motion.a>
-
-              {/* About paragraph — fades up with slight delay */}
+            <div className="whatweworkCardBodya">
               <motion.p
-                className="footerAbout"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px 0px" }}
-                transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+                initial={{ x: -200, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                viewport={{ once: true, amount: "some" }}
+                transition={{ duration: 2, delay: 1.5, ease: "easeOut" }}
+                className="whatweworkTitle"
               >
-                Nand Care Foundation is a grassroots non-profit organisation
-                based in Dhanbad, dedicated to improving the lives of
-                underprivileged communities. We work closely with local families
-                to address critical challenges in education, hunger relief,
-                healthcare and livelihood empowerment.
+                Education
+              </motion.p>
+              <motion.p
+                initial={{ x: -200, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                viewport={{ once: true, amount: "some" }}
+                transition={{ duration: 2.5, delay: 1.5, ease: "easeOut" }}
+                className="whatweworkP"
+              >
+                Helping children overcome barriers to learning, stay connected
+                to education and build brighter futures.
+              </motion.p>
+              <motion.p
+                initial={{ x: -40, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                viewport={{ once: true, amount: "some" }}
+                transition={{ duration: 3, delay: 1.5, ease: "easeOut" }}
+                className="arror-gost-cta-but"
+              >
+                Learn More{" "}
+                <span className="gost-cta-span">
+                  <ChevronRight className="icone" />
+                </span>
               </motion.p>
             </div>
-
-            {/* Social icons — each pops in with scale + stagger */}
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            className="whatweworkCardb"
+          >
             <motion.div
-              className="footerSocial"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-60px 0px" }}
-              variants={{
-                hidden: {},
-                visible: { transition: { staggerChildren: 0.1, delayChildren: 0.25 } },
-              }}
+              initial={{ scale: 0.5, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              viewport={{ once: true, amount: "some" }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              className="whatweworkCardImgBox"
             >
-              {socials.map((s) => (
-                <motion.a
-                  key={s.label}
-                  href={s.href}
-                  aria-label={s.label}
-                  target="_blank"
-                  rel="noreferrer"
-                  variants={{
-                    hidden: { opacity: 0, scale: 0.5, y: 10 },
-                    visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
-                  }}
-                  whileHover={{ scale: 1.2, y: -2 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    {s.icon}
-                  </svg>
-                </motion.a>
-              ))}
+              <img
+                src="./images/what_we_do_second.jpg"
+                alt=""
+                className="whatweworkCardImg"
+              />
+            </motion.div>
+            <div className="whatweworkCardBody">
+              <motion.p
+                initial={{ y: 200, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={{ once: true, amount: "some" }}
+                transition={{ duration: 2, delay: 1.5, ease: "easeOut" }}
+                className="whatweworkTitle"
+              >
+                Hunger & Nutrition
+              </motion.p>
+              <motion.p
+                initial={{ y: 200, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={{ once: true, amount: "some" }}
+                transition={{ duration: 2, delay: 1.5, ease: "easeOut" }}
+                className="whatweworkP"
+              >
+                Supporting families facing food insecurity through nutritious
+                meals and essential nutritional support.
+              </motion.p>
+              <motion.p
+                initial={{ y: 200, opacity: 0 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={{ once: true, amount: "some" }}
+                transition={{ duration: 2, delay: 1.5, ease: "easeOut" }}
+                className="arror-gost-cta-but"
+              >
+                Learn More{" "}
+                <span className="gost-cta-span">
+                  <ChevronRight className="icone" />
+                </span>
+              </motion.p>
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            className="whatweworkCardc"
+          >
+            <motion.div
+              initial={{ x: -200, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true, amount: "some" }}
+              transition={{ duration: 2, ease: "easeOut" }}
+              className="whatweworkCardImgBox"
+            >
+              <img
+                src="./images/what_we_do_third.jpg"
+                alt=""
+                className="whatweworkCardImg"
+              />
+            </motion.div>
+            <div className="whatweworkCardBody">
+              <motion.p
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, amount: "some" }}
+                transition={{ duration: 2, delay: 1.5, ease: "easeOut" }}
+                className="whatweworkTitle"
+              >
+                Elderly Care
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, amount: "some" }}
+                transition={{ duration: 2, delay: 2, ease: "easeOut" }}
+                className="whatweworkP"
+              >
+                Supporting older people with nutritious food, medical assistance
+                and care so they can live with dignity.
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, amount: "some" }}
+                transition={{ duration: 2, delay: 2.5, ease: "easeOut" }}
+                className="arror-gost-cta-but"
+              >
+                Learn More{" "}
+                <span className="gost-cta-span">
+                  <ChevronRight className="icone" />
+                </span>
+              </motion.p>
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            className="whatweworkCardd"
+          >
+            <motion.div
+              initial={{ x: -200, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true, amount: "some" }}
+              transition={{ duration: 2, ease: "easeOut" }}
+              className="whatweworkCardImgBoxa"
+              style={{ width: "100%" }}
+            >
+              <img
+                src="./images/what_we_do_fourth.jpg"
+                alt=""
+                className="whatweworkCardImg"
+              />
+            </motion.div>
+            <div className="whatweworkCardBody">
+              <motion.p
+                initial={{ x: 200, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                viewport={{ once: true, amount: "some" }}
+                transition={{ duration: 2, delay: 1.5, ease: "easeOut" }}
+                className="whatweworkTitle"
+              >
+                Livelihoods
+              </motion.p>
+              <motion.p
+                initial={{ x: 200, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                viewport={{ once: true, amount: "some" }}
+                transition={{ duration: 2, delay: 2, ease: "easeOut" }}
+                className="whatweworkP"
+              >
+                Helping women and vulnerable households develop practical skills
+                and opportunities for economic independence.
+              </motion.p>
+              <motion.p
+                initial={{ x: 200, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                viewport={{ once: true, amount: "some" }}
+                transition={{ duration: 2, delay: 2.5, ease: "easeOut" }}
+                className="arror-gost-cta-but"
+              >
+                Learn More{" "}
+                <span className="gost-cta-span">
+                  <ChevronRight className="icone" />
+                </span>
+              </motion.p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+      <section className="AboutSection">
+        <motion.div
+          initial={{ x: -200, opacity: 0 }}
+          whileInView={{ x: 0, opacity: 1 }}
+          viewport={{ once: true, amount: "some" }}
+          transition={{ duration: 2, ease: "easeOut" }}
+          className="AboutContainera"
+        >
+          <img
+            src="./images/about_img.jpg"
+            alt="About NCF"
+            className="aboutImg"
+          />
+        </motion.div>
+        <div className="AboutContainerb">
+          <motion.p
+            initial={{ x: 200, opacity: 0 }}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 2, ease: "easeOut" }}
+            className="introSectionTag"
+          >
+            OUR STORY
+          </motion.p>
+          <motion.h2
+            initial={{ x: 200, opacity: 0 }}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 2, delay: 1.5, ease: "easeOut" }}
+            className="h2Title"
+          >
+            Rooted in Communities. Driven by Compassion.
+          </motion.h2>
+          <motion.p
+            initial={{ x: 200, opacity: 0 }}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 2, delay: 2, ease: "easeOut" }}
+          >
+            Nand Care Foundation began with a simple belief: meaningful
+            development starts by understanding people and the challenges they
+            face every day.
+            <br />
+            <br />
+            Founded by Deepak Kumar, NCF works closely with underserved and
+            vulnerable communities, particularly tribal communities, coal-mining
+            families and rural populations.
+            <br />
+            <br />
+            We believe that lasting change cannot come from temporary solutions
+            alone. It requires listening to communities, understanding their
+            needs and creating practical opportunities that help individuals and
+            families build more secure and dignified lives.
+            <br />
+            <br />
+            Through our work in education, hunger and nutrition, elderly care
+            and livelihoods, we strive to make support accessible to those who
+            need it most.
+          </motion.p>
+          <motion.p
+            initial={{ x: 200, opacity: 0 }}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 2, delay: 2.5, ease: "easeOut" }}
+            className="arror-gost-cta-but"
+          >
+            Discover Our Story{" "}
+            <span className="gost-cta-span">
+              <ChevronRight className="icone" />
+            </span>
+          </motion.p>
+        </div>
+      </section>
+      <section className="OurImpactSection">
+        <p className="introSectionTag">OUR IMPACT</p>
+        <h2 className="h2Title">
+          Creating Change. Touching Lives. Building Futures.
+        </h2>
+        <p>
+          Through our continued efforts, Nand Care Foundation works to support
+          families, create educational opportunities for children and improve
+          the well-being of elderly people. Every initiative represents a step
+          towards stronger, healthier and more empowered communities.
+        </p>
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, amount: "some" }}
+          transition={{ duration: 2, ease: "easeOut" }}
+          className="ourimapctContainer"
+        >
+          <div className="ourimpactBoxes">
+            <motion.div
+              initial={{ y: 200, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true, amount: "some" }}
+              transition={{ duration: 2, delay: 1, ease: "easeOut" }}
+              className="ourImpactNumberBox"
+            >
+              <p className="ourImpactNumber">50,000+</p>
+              <p className="ourImpactLable">Families Reached</p>
+              <p className="ourImpactP">
+                Supporting families and strengthening communities.
+              </p>
+            </motion.div>
+            <motion.div
+              initial={{ y: 200, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true, amount: "some" }}
+              transition={{ duration: 2, delay: 1.5, ease: "easeOut" }}
+              className="ourImpactNumberBox"
+            >
+              <p className="ourImpactNumber">15+</p>
+              <p className="ourImpactLable">Coaching Centres</p>
+              <p className="ourImpactP">
+                Creating access to educational support and learning
+                opportunities.
+              </p>
+            </motion.div>
+            <motion.div
+              initial={{ y: 200, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true, amount: "some" }}
+              transition={{ duration: 2, delay: 2, ease: "easeOut" }}
+              className="ourImpactNumberBox"
+            >
+              <p className="ourImpactNumber">1,200+</p>
+              <p className="ourImpactLable">Children Impacted</p>
+              <p className="ourImpactP">
+                Helping children access learning and educational support.
+              </p>
+            </motion.div>
+            <motion.div
+              initial={{ y: 200, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true, amount: "some" }}
+              transition={{ duration: 2, delay: 2.5, ease: "easeOut" }}
+              className="ourImpactNumberBox"
+            >
+              <p className="ourImpactNumber">5,000+</p>
+              <p className="ourImpactLable">Elderly People Reached</p>
+              <p className="ourImpactP">
+                Extending care and support to older members of communities.
+              </p>
             </motion.div>
           </div>
-
-          {/* Divider — scales in from left to right */}
-          <motion.hr
-            className="footerRule"
-            initial={{ scaleX: 0, originX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true, margin: "-40px 0px" }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-            style={{ transformOrigin: "left" }}
-          />
-
-          {/* ── Nav columns — each column slides up with stagger ─────────── */}
+        </motion.div>
+        <p style={{ marginTop: "20px" }}>
+          Together, we are working towards a future where every family has
+          opportunities, every child can learn and every elderly person can live
+          with dignity.
+        </p>
+        <p className="arror-gost-cta-but">
+          Explore Our Work{" "}
+          <span className="gost-cta-span">
+            <ChevronRight className="icone" />
+          </span>
+        </p>
+      </section>
+      <section className="VisionMissionSection">
+        <p className="introSectionTag">OUR PURPOSE</p>
+        <h2 className="h2Title">A Vision for a Better Tomorrow</h2>
+        <p>
+          We believe that every community deserves the opportunity to grow,
+          every individual deserves dignity, and every family deserves a chance
+          at a better future.
+        </p>
+        <div className="VisionMissionContainer">
           <motion.div
-            className="footerCols"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-60px 0px" }}
-            variants={{
-              hidden: {},
-              visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
+            initial={{ scale: 0.7, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="visionContainer"
+          >
+            <p className="visionLable">
+              <span className="visionIcon">
+                <Eye className="icone" />
+              </span>
+              A Future Filled with Opportunity and Dignity
+            </p>
+            <p className="visionP">
+              A future where tribal communities, coal-mining families and
+              underserved populations overcome challenges, access essential
+              opportunities and build better lives for themselves and future
+              generations.
+            </p>
+          </motion.div>
+          <motion.div
+            initial={{ scale: 0.7, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="missionContainer"
+          >
+            <p className="visionLable">
+              <span className="visionIcon">
+                <Goal className="icone" />
+              </span>
+              Turning Community Needs into Meaningful Action
+            </p>
+            <p className="visionP">
+              To work alongside tribal communities and coal-mining families,
+              addressing their immediate needs while creating lasting
+              opportunities through education, hunger and nutrition support,
+              elderly care and sustainable livelihoods.
+            </p>
+          </motion.div>
+        </div>
+        <p style={{ fontSize: "20px", fontWeight: "600", textAlign: "center" }}>
+          Together, We Can Build Stronger Communities.
+        </p>
+      </section>
+      <section className="WhoWeSupportSection">
+        <p className="introSectionTag">THE COMMUNITIES WE SERVE</p>
+        <h2 className="h2Title">
+          Standing Together with Those Who Need Support
+        </h2>
+        <p>
+          We work alongside underserved and vulnerable communities, supporting
+          individuals and families through essential services, meaningful
+          opportunities and compassionate care.
+        </p>
+        <div className="WhoWeSupportContainer">
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="WhoWeSupportBox"
+          >
+            <div className="whowesupportImgBox">
+              <img
+                src="./images/whowesupport.jpg"
+                alt="Building Brighter Futures"
+                className="whowesupportImg"
+              />
+            </div>
+            <div className="whowesupportBody">
+              <p className="whowesupportBoxLabel">Building Brighter Futures</p>
+              <p className="whowesupportBoxP">
+                We support children from underserved communities by helping them
+                access education, learning resources and opportunities to build
+                a better future
+              </p>
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{ y: -100, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1, delay: 1.5, ease: "easeOut" }}
+            className="WhoWeSupportBox"
+          >
+            <div className="whowesupportImgBox">
+              <img
+                src="./images/whowesupportb.jpg"
+                alt="Building Brighter Futures"
+                className="whowesupportImg"
+              />
+            </div>
+            <div className="whowesupportBody">
+              <p className="whowesupportBoxLabel">
+                Strengthening Families and Communities
+              </p>
+              <p className="whowesupportBoxP">
+                We work with vulnerable families, particularly tribal
+                communities and coal-mining families, to address essential needs
+                and improve their opportunities for a secure and self-reliant
+                life.
+              </p>
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1, delay: 2, ease: "easeOut" }}
+            className="WhoWeSupportBox"
+          >
+            <div className="whowesupportImgBox">
+              <img
+                src="./images/whowesupportc.jpg"
+                alt="Building Brighter Futures"
+                className="whowesupportImg"
+              />
+            </div>
+            <div className="whowesupportBody">
+              <p className="whowesupportBoxLabel">Promoting Care and Dignity</p>
+              <p className="whowesupportBoxP">
+                We extend support to elderly people through care, essential
+                assistance and initiatives that help them live with dignity and
+                well-being.
+              </p>
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{ y: -100, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1, delay: 2.5, ease: "easeOut" }}
+            className="WhoWeSupportBox"
+          >
+            <div className="whowesupportImgBox">
+              <img
+                src="./images/whowesupportd.jpg"
+                alt="Building Brighter Futures"
+                className="whowesupportImg"
+              />
+            </div>
+            <div className="whowesupportBody">
+              <p className="whowesupportBoxLabel">
+                Creating Opportunities for Independence
+              </p>
+              <p className="whowesupportBoxP">
+                We encourage skill development and livelihood opportunities that
+                help women and vulnerable individuals build confidence and move
+                towards economic self-reliance.
+              </p>
+            </div>
+          </motion.div>
+        </div>
+        <p className="arror-gost-cta-but">
+          Explore Our Work{" "}
+          <span className="gost-cta-span">
+            <ChevronRight className="icone" />
+          </span>
+        </p>
+      </section>
+      <section className="GetInvolvedSection">
+        <p className="introSectionTag">BE A PART OF THE CHANGE</p>
+        <h2 className="h2Title">Together, We Can Make a Difference</h2>
+        <p>
+          Meaningful change happens when people come together. Whether you
+          contribute, volunteer your time or build a partnership with us, your
+          support can help create better opportunities and stronger communities.
+        </p>
+        <div className="getinvolvedContainer">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="getInvolvedBoxa"
+          >
+            <div className="getInvolvedBody">
+              <p className="getInvolvedBodyLabel">
+                Your Support Can Change Lives
+              </p>
+              <div className="getInvolvedHidden">
+                <div className="getInvolvedHiddenInner">
+                  <p className="getInvolvedBodyP">
+                    Your contribution helps support NCF's initiatives in
+                    education, hunger and nutrition, elderly care and livelihood
+                    development.
+                  </p>
+                </div>
+              </div>
+              <p className="arror-gost-cta-but getinvolveCta">
+                Donate Now{" "}
+                <span className="gost-cta-span">
+                  <ChevronRight className="icone" />
+                </span>
+              </p>
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1, delay: 1, ease: "easeOut" }}
+            className="getInvolvedBoxb"
+          >
+            <div className="getInvolvedBody">
+              <p className="getInvolvedBodyLabel">
+                Give Your Time. Make an Impact.
+              </p>
+              <div className="getInvolvedHidden">
+                <div className="getInvolvedHiddenInner">
+                  <p className="getInvolvedBodyP">
+                    Share your time, skills and knowledge to support community
+                    initiatives and make a meaningful difference in people's
+                    lives.
+                  </p>
+                </div>
+              </div>
+              <p className="arror-gost-cta-but">
+                Become a Volunteer{" "}
+                <span className="gost-cta-span">
+                  <ChevronRight className="icone" />
+                </span>
+              </p>
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1, delay: 1.5, ease: "easeOut" }}
+            className="getInvolvedBoxc"
+          >
+            <div className="getInvolvedBody">
+              <p className="getInvolvedBodyLabel">
+                Create Greater Impact Together
+              </p>
+              <div className="getInvolvedHidden">
+                <div className="getInvolvedHiddenInner">
+                  <p className="getInvolvedBodyP">
+                    Collaborate with Nand Care Foundation as an organisation,
+                    institution or community partner to support initiatives and
+                    expand opportunities for underserved communities.
+                  </p>
+                </div>
+              </div>
+              <p className="arror-gost-cta-but">
+                Partner With Us{" "}
+                <span className="gost-cta-span">
+                  <ChevronRight className="icone" />
+                </span>
+              </p>
+            </div>
+          </motion.div>
+        </div>
+        <p style={{ fontSize: "20px", fontWeight: "600" }}>
+          Small Contributions. Collective Impact. Better Futures.
+        </p>
+        <p className="arror-gost-cta-but">
+          Get Involved Today{" "}
+          <span className="gost-cta-span">
+            <ChevronRight className="icone" />
+          </span>
+        </p>
+      </section>
+      <section className="testimonialSection">
+        <p className="introSectionTag">VOICES FROM OUR COMMUNITY</p>
+        <h2 className="h2Title">
+          Real Stories. Real Experiences. Meaningful Change.
+        </h2>
+        <p>
+          Behind every initiative is a person, a family or a community with a
+          story to share. Hear from the people who are part of Nand Care
+          Foundation's journey towards creating stronger and more empowered
+          communities.
+        </p>
+        <div className="testimonialContainer">
+          <motion.div
+            initial={{ x: -200, opacity: 0 }}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1, delay: 1.5, ease: "easeOut" }}
+            className="testimonialBox"
+          >
+            <p className="testimonialTesti">
+              "Education gives children the confidence to dream bigger. The
+              support provided through Nand Care Foundation has helped create
+              better learning opportunities for children in our community. We
+              are grateful for the efforts being made towards their future."
+            </p>
+            <p className="testimonialName">A Parent</p>
+            <p className="testimonialSmallLabel">Parent · Community Member</p>
+          </motion.div>
+          <motion.div
+            initial={{ x: -400, opacity: 0 }}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1, delay: 1, ease: "easeOut" }}
+            className="testimonialBox"
+          >
+            <p className="testimonialTesti">
+              "Nand Care Foundation's work gives families like ours hope for a
+              better future. Their efforts to support underserved communities
+              and address everyday needs are important steps towards building
+              stronger and more self-reliant communities."
+            </p>
+            <p className="testimonialName">A Community Member</p>
+            <p className="testimonialSmallLabel">Community Beneficiary</p>
+          </motion.div>
+          <motion.div
+            initial={{ x: -400, opacity: 0 }}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true, amount: "some" }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="testimonialBox"
+          >
+            <p className="testimonialTesti">
+              "Being part of community initiatives has shown me how meaningful
+              even small efforts can be. Working alongside Nand Care Foundation
+              has given me an opportunity to contribute my time and skills
+              towards creating positive change in people's lives."
+            </p>
+            <p className="testimonialName">Volunteer</p>
+            <p className="testimonialSmallLabel">A NCF Volunteer</p>
+          </motion.div>
+        </div>
+      </section>
+      <section className="FinalCTASection">
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, amount: "some" }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="finalCTAContainer"
+        >
+          <p className="introSectionTag">BE A PART OF THE CHANGE</p>
+          <h2
+            className="h2Title"
+            style={{
+              textShadow: "0 2px 4px rgba(0, 0, 0, 0.5)",
+              textAlign: "center",
             }}
           >
-            {columns.map((col) => (
-              <motion.div
-                key={col.title}
-                variants={{
-                  hidden: { opacity: 0, y: 28 },
-                  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
-                }}
-              >
-                {/* Column heading — slight extra pop */}
-                <motion.h3
-                  initial={{ opacity: 0, x: -12 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.45, ease: "easeOut", delay: 0.1 }}
-                >
-                  {col.title}
-                </motion.h3>
-                <ul>
-                  {col.links.map((l, li) => (
-                    <motion.li
-                      key={l.label}
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.4, ease: "easeOut", delay: 0.15 + li * 0.07 }}
-                    >
-                      <a href={l.href}>{l.label}</a>
-                    </motion.li>
-                  ))}
-                </ul>
-              </motion.div>
-            ))}
-
-            {/* Contact column — slides up from below */}
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: 28 },
-                visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
-              }}
-            >
-              <motion.h3
-                initial={{ opacity: 0, x: -12 }}
-                whileInView={{ opacity: 1, x: 0 }}
+            Together, We Can Build a Better Tomorrow.
+          </h2>
+          <p className="finalctaP">
+            Every child deserves an opportunity to learn. Every family deserves
+            access to essential support. Every elderly person deserves care and
+            dignity. With your support, Nand Care Foundation can continue
+            working towards stronger communities and brighter futures.
+          </p>
+          <div className="herosectionBox">
+            <p className="herocta-but">Donate Now</p>
+            <p className="herogost-but">
+              Become a Volunteer{" "}
+              <span className="cta-span">
+                <ChevronRight className="icone" />
+              </span>
+            </p>
+          </div>
+        </motion.div>
+      </section>
+      <footer className="HomeFooterSection">
+        <div className="footerContainera">
+          <div className="footerContainerBoxa">
+            <div className="footerContainerMinBox">
+              {/* SCALE IN */}
+              <motion.img
+                initial={{ scale: 0.5, opacity: 0 }}
+                whileInView={{ scale: 1, opacity: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.45, ease: "easeOut", delay: 0.1 }}
+                transition={{ duration: 0.6, type: "spring", stiffness: 120 }}
+                src="./images/ncf_logo_nobg.webp"
+                alt="Nand Care Foundation"
+                className="footerLogo"
+              />
+              {/* SLIDE FROM RIGHT */}
+              <motion.p
+                initial={{ x: 60, opacity: 0 }}
+                whileInView={{ x: 0, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="footerNCFTitle"
               >
-                Contact us
-              </motion.h3>
-              <address>
-                {/* Each address line fades + slides up with individual delays */}
-                <motion.span
-                  initial={{ opacity: 0, y: 14 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
-                >
-                  <b>Registered office</b>
-                  <br />
-                  2-A/3 Second Floor Front Side Asaf Ali Road, Turkman Gate,
-                  New Delhi, Delhi 110002
-                </motion.span>
-
-                <motion.span
-                  initial={{ opacity: 0, y: 14 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.22 }}
-                >
-                  <b>Working area</b>
-                  <br />
-                  Dhanbad, Jharkhand
-                </motion.span>
-
-                <motion.a
-                  href="tel:+917909054585"
-                  initial={{ opacity: 0, x: 16 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.45, ease: "easeOut", delay: 0.3 }}
-                >
-                  +91 7909054585
-                </motion.a>
-
-                <motion.a
-                  href="mailto:Nandcarefoundation@gmail.com"
-                  initial={{ opacity: 0, x: 16 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.45, ease: "easeOut", delay: 0.37 }}
-                >
-                  Nandcarefoundation@gmail.com
-                </motion.a>
-
-                <motion.span
-                  className="footerCin"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, ease: "easeOut", delay: 0.44 }}
-                >
-                  CIN U85320DL2019NPL358219
-                </motion.span>
-
-                <motion.span
-                  className="footerBadges"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
-                >
-                  <span>80G certified</span>
-                  <span>Razorpay verified</span>
-                </motion.span>
-              </address>
-            </motion.div>
-          </motion.div>
-
-          {/* Second divider */}
-          <motion.hr
-            className="footerRule footerRuleSm"
-            initial={{ scaleX: 0, originX: 0 }}
-            whileInView={{ scaleX: 1 }}
-            viewport={{ once: true, margin: "-20px 0px" }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            style={{ transformOrigin: "left" }}
-          />
-
-          {/* ── Legal row — links slide up, copyright fades ───────────────── */}
-          <div className="footerLegal">
-            <motion.ul
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={{
-                hidden: {},
-                visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
-              }}
-            >
-              {legal.map((l) => (
-                <motion.li
-                  key={l.label}
-                  variants={{
-                    hidden: { opacity: 0, y: 12 },
-                    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
-                  }}
-                >
-                  <a href={l.href}>{l.label}</a>
-                </motion.li>
-              ))}
-            </motion.ul>
-
-            {/* Copyright — fades in last */}
-            <motion.span
+                Nand Care
+                <br />
+                Foundation
+              </motion.p>
+            </div>
+            {/* FADE IN */}
+            <motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, ease: "easeOut", delay: 0.35 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="footerLabel"
             >
-              © {new Date().getFullYear()} Nand Care Foundation. All rights
-              reserved.
-            </motion.span>
+              Building Better Lives. Creating Opportunities. Restoring Dignity.
+            </motion.p>
+            {/* SLIDE UP + FADE */}
+            <motion.p
+              initial={{ y: 30, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              Working towards stronger communities through education, hunger and
+              nutrition, elderly care and livelihood support.
+            </motion.p>
           </div>
 
+          <div className="footerContainerBoxb">
+            {/* SCALE IN, one after another */}
+            <motion.p
+              initial={{ scale: 0, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{
+                type: "spring",
+                stiffness: 200,
+                damping: 12,
+                delay: 0.2,
+              }}
+              whileHover={{ scale: 1.2 }}
+              className="footerSocialMediaIco"
+            >
+              <ImFacebook2 className="react-icone" />
+            </motion.p>
+            <motion.p
+              initial={{ scale: 0, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{
+                type: "spring",
+                stiffness: 200,
+                damping: 12,
+                delay: 0.35,
+              }}
+              whileHover={{ scale: 1.2 }}
+              className="footerSocialMediaIco"
+            >
+              <GrInstagram className="react-icone" />
+            </motion.p>
+            <motion.p
+              initial={{ scale: 0, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{
+                type: "spring",
+                stiffness: 200,
+                damping: 12,
+                delay: 0.5,
+              }}
+              whileHover={{ scale: 1.2 }}
+              className="footerSocialMediaIco"
+            >
+              <BsLinkedin className="react-icone" />
+            </motion.p>
+          </div>
+        </div>
+
+        <div className="footerContainerb">
+          {/* COLUMN 1: SLIDE FROM LEFT */}
+          <div className="footerContainerbNavLink">
+            <motion.p
+              initial={{ x: -50, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              style={{ fontWeight: "600", fontSize: "20px" }}
+            >
+              Quick Links
+            </motion.p>
+            <motion.p
+              initial={{ x: -40, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="footerLink"
+            >
+              Home
+            </motion.p>
+            <motion.p
+              initial={{ x: -40, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.15 }}
+              className="footerLink"
+            >
+              About Us
+            </motion.p>
+            <motion.p
+              initial={{ x: -40, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className="footerLink"
+            >
+              Our Work
+            </motion.p>
+            <motion.p
+              initial={{ x: -40, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.25 }}
+              className="footerLink"
+            >
+              Our Impact
+            </motion.p>
+            <motion.p
+              initial={{ x: -40, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+              className="footerLink"
+            >
+              Where We Work
+            </motion.p>
+            <motion.p
+              initial={{ x: -40, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.35 }}
+              className="footerLink"
+            >
+              Get Involved
+            </motion.p>
+            <motion.p
+              initial={{ x: -40, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+              className="footerLink"
+            >
+              Gallery
+            </motion.p>
+            <motion.p
+              initial={{ x: -40, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.45 }}
+              className="footerLink"
+            >
+              Contact Us
+            </motion.p>
+          </div>
+
+          {/* COLUMN 2: SLIDE UP + FADE */}
+          <div className="footerContainerbNavLink">
+            <motion.p
+              initial={{ y: 30, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              style={{ fontWeight: "600", fontSize: "20px" }}
+            >
+              Our Focus Areas
+            </motion.p>
+            <motion.p
+              initial={{ y: 30, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="footerLink"
+            >
+              Education
+            </motion.p>
+            <motion.p
+              initial={{ y: 30, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+              className="footerLink"
+            >
+              Hunger & Nutrition
+            </motion.p>
+            <motion.p
+              initial={{ y: 30, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.35 }}
+              className="footerLink"
+            >
+              Elderly Care
+            </motion.p>
+            <motion.p
+              initial={{ y: 30, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.45 }}
+              className="footerLink"
+            >
+              Livelihoods
+            </motion.p>
+          </div>
+
+          {/* COLUMN 3: FADE IN */}
+          <div className="footerContainerbNavLink">
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              style={{ fontWeight: "600", fontSize: "20px" }}
+            >
+              Contact Us
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="footerLinkb"
+            >
+              <span style={{ fontWeight: "600" }}>Registered Office: </span>
+              2-A/3, Second Floor, Front Side, Asaf Ali Road, Turkman Gate, New
+              Delhi, Delhi 110002, India
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="footerLinkb"
+            >
+              <span style={{ fontWeight: "600" }}>Working Area: </span>
+              Dhanbad, Jharkhand, India
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="footerLinkb"
+            >
+              +91 7909054585
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+              className="footerLinkb"
+            >
+              Nandcarefoundation@gmail.com
+            </motion.p>
+          </div>
+
+          {/* COLUMN 4: SLIDE FROM RIGHT + SCALE TAGS */}
+          <div className="footerContainerbNavLink">
+            <motion.p
+              initial={{ x: 50, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              style={{ fontWeight: "600", fontSize: "20px" }}
+            >
+              Registration & Trust
+            </motion.p>
+            <motion.p
+              initial={{ x: 50, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="footerLinkb"
+            >
+              <span style={{ fontWeight: "600" }}>CIN: </span>
+              U85320DL2019NPL358219
+            </motion.p>
+            <motion.p
+              initial={{ scale: 0.6, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{
+                type: "spring",
+                stiffness: 150,
+                damping: 12,
+                delay: 0.4,
+              }}
+              className="introSectionTag"
+            >
+              80G Certified
+            </motion.p>
+            <motion.p
+              initial={{ scale: 0.6, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{
+                type: "spring",
+                stiffness: 150,
+                damping: 12,
+                delay: 0.55,
+              }}
+              className="introSectionTag"
+            >
+              Razorpay Verified
+            </motion.p>
+          </div>
         </div>
       </footer>
+      <div className="footerprivacypolicyCon">
+        <div className="footerprivacypolicyBox">
+          {/* SLIDE FROM LEFT */}
+          <motion.p
+            initial={{ x: -40, opacity: 0 }}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="policyP"
+          >
+            Privacy policy
+          </motion.p>
+
+          {/* SLIDE UP + FADE */}
+          <motion.p
+            initial={{ y: 30, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="policyP"
+          >
+            Terms of Use
+          </motion.p>
+
+          {/* SCALE IN */}
+          <motion.p
+            initial={{ scale: 0.6, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{
+              type: "spring",
+              stiffness: 150,
+              damping: 12,
+              delay: 0.4,
+            }}
+            className="policyP"
+          >
+            Refund & cancellation
+          </motion.p>
+
+          {/* SLIDE FROM RIGHT */}
+          <motion.p
+            initial={{ x: 40, opacity: 0 }}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.55 }}
+            className="policyP"
+          >
+            Donation policy
+          </motion.p>
+        </div>
+
+        {/* FADE IN */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1, delay: 0.7 }}
+        >
+          © 2026 Nand Care Foundation. All Rights Reserved.
+        </motion.p>
+      </div>
     </>
   );
 }
